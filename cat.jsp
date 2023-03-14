@@ -11,6 +11,7 @@
         <form action="FrontServlet" method="get">
             <p>Name
             <input type="text" name="name" id="" required></p>
+            <input type="hidden" name="mapping" value="Cat-insert">
             <p><button type="submit">Create</button></p>
         </form>
     </div>
