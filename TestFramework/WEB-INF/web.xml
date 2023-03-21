@@ -6,15 +6,4 @@
                       http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
          version="3.1"
          metadata-complete="true">
-
-    <servlet>
-        <servlet-name>etu1995.framework.servlet.FrontServlet</servlet-name>
-        <servlet-class>etu1995.framework.servlet.FrontServlet</servlet-class>
-    </servlet>
-
-    <servlet-mapping>
-        <servlet-name>etu1995.framework.servlet.FrontServlet</servlet-name>
-        <url-pattern>/FrontServlet</url-pattern>
-    </servlet-mapping>
-
 </web-app>
