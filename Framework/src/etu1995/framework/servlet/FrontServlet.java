@@ -2,6 +2,7 @@ package etu1995.framework.servlet;
 
 import annotations.MappingUrl;
 import etu1995.framework.Mapping;
+import etu1995.framework.ModelView;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServlet;
@@ -46,6 +47,9 @@ public class FrontServlet extends HttpServlet{
 
     public void processRequest(HttpServletRequest req,HttpServletResponse resp) throws Exception {
         String url = req.getRequestURL().toString();
+        int lst = url.lastIndexOf('/');
+        String last = url.substring(lst+1);
+        System.out.println(last);
         try {
             if (!req.getQueryString().isEmpty()) {
                 url = url + "?" + req.getQueryString();
@@ -57,6 +61,16 @@ public class FrontServlet extends HttpServlet{
         while (parameters.hasMoreElements()){
             String pname = parameters.nextElement();
             System.out.println(pname+": "+req.getParameter(pname));
+        }
+        if (getMappingUrls().containsKey(last)){
+            Mapping tmp = getMappingUrls().get(last);
+            Class<?> cls = Class.forName(tmp.getClassName());
+            Method m = cls.getDeclaredMethod(tmp.getMethod());
+            if (m.getReturnType()== ModelView.class){
+                ModelView modelView = (ModelView) m.invoke(cls.newInstance());
+                RequestDispatcher requestDispatcher = req.getRequestDispatcher(modelView.getView());
+                requestDispatcher.forward(req,resp);
+            }
         }
     }
 
@@ -80,7 +94,7 @@ public class FrontServlet extends HttpServlet{
             Class<?> cls = Class.forName(path);
             for (Method m : cls.getDeclaredMethods()){
                 if (m.isAnnotationPresent(MappingUrl.class)){
-                    getMappingUrls().put(path+"-"+m.getAnnotation(MappingUrl.class).url(),new Mapping(path,m.getName()));
+                    getMappingUrls().put(m.getAnnotation(MappingUrl.class).url(),new Mapping(path,m.getName()));
                 }
             }
         }
