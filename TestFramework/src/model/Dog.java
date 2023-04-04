@@ -24,6 +24,9 @@ public class Dog {
 
     @MappingUrl(url = "dog-all")
     public ModelView findAll(){
-        return new ModelView("dog.jsp");
+        ModelView modelView = new ModelView("dog.jsp");
+        modelView.addItem("dogs",new String[]{"Q","W","R"});
+        modelView.addItem("alik",new Dog("Alik"));
+        return modelView;
     }
 }

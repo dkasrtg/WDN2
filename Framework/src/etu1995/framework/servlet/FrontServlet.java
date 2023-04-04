@@ -68,6 +68,10 @@ public class FrontServlet extends HttpServlet{
             Method m = cls.getDeclaredMethod(tmp.getMethod());
             if (m.getReturnType()== ModelView.class){
                 ModelView modelView = (ModelView) m.invoke(cls.newInstance());
+                modelView.getData().forEach(
+                        (key,value)
+                        -> req.setAttribute(key,value)
+                );
                 RequestDispatcher requestDispatcher = req.getRequestDispatcher(modelView.getView());
                 requestDispatcher.forward(req,resp);
             }

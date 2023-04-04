@@ -20,8 +20,10 @@ public class Cat {
     public String getName() {
         return name;
     }
+
     @MappingUrl(url = "cat-all")
     public ModelView findAll(){
+
         return new ModelView("cat.jsp");
     }
 }
