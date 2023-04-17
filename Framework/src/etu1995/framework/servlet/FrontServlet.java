@@ -49,24 +49,29 @@ public class FrontServlet extends HttpServlet{
         String url = req.getRequestURL().toString();
         int lst = url.lastIndexOf('/');
         String last = url.substring(lst+1);
-        System.out.println(last);
+//        System.out.println(last);
         try {
             if (!req.getQueryString().isEmpty()) {
                 url = url + "?" + req.getQueryString();
             }
         }catch (Exception ignored){}
-        System.out.println(url);
-        Enumeration<String> parameters = req.getParameterNames();
-        System.out.println("Parameters:");
-        while (parameters.hasMoreElements()){
-            String pname = parameters.nextElement();
-            System.out.println(pname+": "+req.getParameter(pname));
-        }
+//        System.out.println(url);
+//        Enumeration<String> parameters = req.getParameterNames();
+//        System.out.println("Parameters:");
+//        while (parameters.hasMoreElements()){
+//            String pname = parameters.nextElement();
+//            System.out.println(pname+": "+req.getParameter(pname));
+//        }
         if (getMappingUrls().containsKey(last)){
             Mapping tmp = getMappingUrls().get(last);
             Class<?> cls = Class.forName(tmp.getClassName());
-            Method m = cls.getDeclaredMethod(tmp.getMethod());
-            if (m.getReturnType()== ModelView.class){
+            Method m = null;
+            try {
+                m = cls.getDeclaredMethod(tmp.getMethod());
+            }catch (Exception e){
+                m = cls.getDeclaredMethod(tmp.getMethod(),HashMap.class);
+            }
+            if (m.getReturnType() == ModelView.class){
                 ModelView modelView = (ModelView) m.invoke(cls.newInstance());
                 modelView.getData().forEach(
                         (key,value)
@@ -74,6 +79,9 @@ public class FrontServlet extends HttpServlet{
                 );
                 RequestDispatcher requestDispatcher = req.getRequestDispatcher(modelView.getView());
                 requestDispatcher.forward(req,resp);
+            }
+            else {
+                m.invoke(cls.newInstance(),parameters(req));
             }
         }
     }
@@ -102,6 +110,15 @@ public class FrontServlet extends HttpServlet{
                 }
             }
         }
+    }
+    public HashMap<String,String> parameters(HttpServletRequest request){
+        HashMap<String,String> result = new HashMap<>();
+        Enumeration<String> parameters = request.getParameterNames();
+        while (parameters.hasMoreElements()){
+            String pname = parameters.nextElement();
+            result.put(pname,request.getParameter(pname));
+        }
+        return result;
     }
     public void get_files(String path, List<File> files){
         File f = new File(path);
