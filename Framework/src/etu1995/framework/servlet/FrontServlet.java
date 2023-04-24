@@ -10,8 +10,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+
+import utilities.*;
 
 public class FrontServlet extends HttpServlet{
     HashMap<String, Mapping> MappingUrls;
@@ -65,12 +68,7 @@ public class FrontServlet extends HttpServlet{
         if (getMappingUrls().containsKey(last)){
             Mapping tmp = getMappingUrls().get(last);
             Class<?> cls = Class.forName(tmp.getClassName());
-            Method m = null;
-            try {
-                m = cls.getDeclaredMethod(tmp.getMethod());
-            }catch (Exception e){
-                m = cls.getDeclaredMethod(tmp.getMethod(),HashMap.class);
-            }
+            Method m = cls.getDeclaredMethod(tmp.getMethod());
             if (m.getReturnType() == ModelView.class){
                 ModelView modelView = (ModelView) m.invoke(cls.newInstance());
                 modelView.getData().forEach(
@@ -81,7 +79,10 @@ public class FrontServlet extends HttpServlet{
                 requestDispatcher.forward(req,resp);
             }
             else {
-                m.invoke(cls.newInstance(),parameters(req));
+                Object c = cls.newInstance();
+                HashMap<String,String> p = parameters(req);
+                setClass(p,c);
+                m.invoke(c);
             }
         }
     }
@@ -133,5 +134,33 @@ public class FrontServlet extends HttpServlet{
                 }
             }
         }
+    }
+    public void setClass(HashMap<String,String> p,Object c){
+        Reflection reflection = new Reflection();
+        p.forEach(
+                (key,value)
+                        -> {
+                    String to_compare = "set";
+                    to_compare = to_compare + key;
+                    for (int j = 0; j < c.getClass().getDeclaredMethods().length; j++) {
+                        if (c.getClass().getDeclaredMethods()[j].getName().equalsIgnoreCase(to_compare)) {
+                            Method method = c.getClass().getDeclaredMethods()[j];
+                            String name =  method.getParameterTypes()[0].getName();
+                            if (name.equals("java.lang.String")){
+                                try {
+                                    method.invoke(c,value);
+                                }
+                                catch (Exception ignored){}
+                            }
+                            else {
+                                try {
+                                    method.invoke(c,reflection.caster(name).invoke(reflection,value));
+                                }
+                                catch (Exception ignored){}
+                            }
+                        }
+                    }
+                }
+        );
     }
 }
