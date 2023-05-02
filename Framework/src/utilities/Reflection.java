@@ -37,14 +37,13 @@ public class Reflection {
         }
         return methods;
     }
-    public Vector<Method> methods_by(String by,Object object){
-        Vector<Method> result = new Vector<>();
+    public Method method_by(String method,Object object){
         for (int i=0;i<object.getClass().getDeclaredMethods().length;i++){
-            if (object.getClass().getDeclaredMethods()[i].getName().contains(by)){
-                result.add(object.getClass().getDeclaredMethods()[i]);
+            if (object.getClass().getDeclaredMethods()[i].getName().equals(method)){
+                return object.getClass().getDeclaredMethods()[i];
             }
         }
-        return result;
+        return null;
     }
     public Vector<Method> corres(Vector<Method> methods,Object object){
         Vector<Method> result = new Vector<>();
@@ -101,6 +100,9 @@ public class Reflection {
             case "boolean":
             case "java.lang.Boolean":
                 result = Boolean.class.getDeclaredMethod("valueOf", String.class);
+                break;
+            case "java.lang.String":
+                result = String.class.getDeclaredMethod("valueOf", Object.class);
                 break;
         }
         return result;

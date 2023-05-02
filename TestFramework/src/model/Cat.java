@@ -28,12 +28,4 @@ public class Cat {
         return new ModelView("cat.jsp");
     }
 
-    @MappingUrl(url = "cat-catter")
-    public void catme(HashMap<String,String> parameters){
-        System.out.println("Catter");
-        parameters.forEach(
-                (key,value)
-                        -> System.out.println(key + " : " + value)
-        );
-    }
 }
