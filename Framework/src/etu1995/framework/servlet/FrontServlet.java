@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
 
 import utilities.*;
@@ -52,37 +53,40 @@ public class FrontServlet extends HttpServlet{
         String url = req.getRequestURL().toString();
         int lst = url.lastIndexOf('/');
         String last = url.substring(lst+1);
-//        System.out.println(last);
         try {
             if (!req.getQueryString().isEmpty()) {
                 url = url + "?" + req.getQueryString();
             }
         }catch (Exception ignored){}
-//        System.out.println(url);
-//        Enumeration<String> parameters = req.getParameterNames();
-//        System.out.println("Parameters:");
-//        while (parameters.hasMoreElements()){
-//            String pname = parameters.nextElement();
-//            System.out.println(pname+": "+req.getParameter(pname));
-//        }
         if (getMappingUrls().containsKey(last)){
             Mapping tmp = getMappingUrls().get(last);
             Class<?> cls = Class.forName(tmp.getClassName());
-            Method m = cls.getDeclaredMethod(tmp.getMethod());
+            Reflection r  = new Reflection();
+            Method m = r.method_by(tmp.getMethod(),cls.newInstance());
+            Object c = cls.newInstance();
+            HashMap<String,String> p = parameters(req);
+            setClass(p,c);
+            Parameter[] parameters = m.getParameters();
+            Object[] obj =  new Object[parameters.length];
+            for (int i = 0; i < parameters.length; i++) {
+                if (p.containsKey(parameters[i].getName())){
+                    obj[i] = r.caster(parameters[i].getType().getName()).invoke(r,p.get(parameters[i].getName()));
+                }
+                else {
+                    obj[i] = null;
+                }
+            }
             if (m.getReturnType() == ModelView.class){
-                ModelView modelView = (ModelView) m.invoke(cls.newInstance());
+                ModelView modelView = (ModelView) m.invoke(c,obj);
                 modelView.getData().forEach(
                         (key,value)
-                        -> req.setAttribute(key,value)
+                                -> req.setAttribute(key,value)
                 );
                 RequestDispatcher requestDispatcher = req.getRequestDispatcher(modelView.getView());
                 requestDispatcher.forward(req,resp);
             }
             else {
-                Object c = cls.newInstance();
-                HashMap<String,String> p = parameters(req);
-                setClass(p,c);
-                m.invoke(c);
+                m.invoke(c, obj);
             }
         }
     }
@@ -163,4 +167,5 @@ public class FrontServlet extends HttpServlet{
                 }
         );
     }
+
 }
