@@ -5,18 +5,21 @@ import etu1995.framework.Mapping;
 import etu1995.framework.ModelView;
 
 import javax.servlet.*;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
 import utilities.*;
 
+
+@MultipartConfig
 public class FrontServlet extends HttpServlet{
     HashMap<String, Mapping> MappingUrls;
 
@@ -25,7 +28,6 @@ public class FrontServlet extends HttpServlet{
         super.init(config);
         try {
             setMappingUrls(new HashMap<>(),getInitParameter("path"));
-            System.out.println(getMappingUrls());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -65,14 +67,16 @@ public class FrontServlet extends HttpServlet{
             Method m = r.method_by(tmp.getMethod(),cls.newInstance());
             Object c = cls.newInstance();
             HashMap<String,String> p = parameters(req);
-            setClass(p,c);
+            HashMap<String,Vector<Part>> part = parts(req);
+            setClass(p,part,c);
             Parameter[] parameters = m.getParameters();
             Object[] obj =  new Object[parameters.length];
             for (int i = 0; i < parameters.length; i++) {
                 if (p.containsKey(parameters[i].getName())){
                     obj[i] = r.caster(parameters[i].getType().getName()).invoke(r,p.get(parameters[i].getName()));
-                }
-                else {
+                } else if (part.containsKey(parameters[i].getName())) {
+                    obj[i] = r.caster(parameters[i].getType().getName()).invoke(r,part.get(parameters[i].getName()));
+                } else {
                     obj[i] = null;
                 }
             }
@@ -116,15 +120,44 @@ public class FrontServlet extends HttpServlet{
             }
         }
     }
-    public HashMap<String,String> parameters(HttpServletRequest request){
+    public HashMap<String,String> parameters(HttpServletRequest request) throws Exception {
         HashMap<String,String> result = new HashMap<>();
         Enumeration<String> parameters = request.getParameterNames();
         while (parameters.hasMoreElements()){
             String pname = parameters.nextElement();
-            result.put(pname,request.getParameter(pname));
+            if(pname.endsWith("[]")){
+                String coco = pname.substring(0,pname.indexOf('['));
+                result.put(coco, Arrays.toString(request.getParameterValues(pname)));
+            }
+            else {
+                result.put(pname, request.getParameter(pname));
+            }
         }
         return result;
     }
+    public HashMap<String,Vector<Part>> parts(HttpServletRequest request) {
+        HashMap<String,Vector<Part>> result = new HashMap<>();
+        Collection<Part> parts = null;
+        try {
+            parts = request.getParts();
+        } catch (Exception e) {
+            return result;
+        }
+        Iterator<Part> partIterator = parts.iterator();
+        while (partIterator.hasNext()){
+            Part p = partIterator.next();
+            if (result.containsKey(p.getName())){
+                result.get(p.getName()).add(p);
+            }
+            else {
+                Vector<Part> tmp = new Vector<>();
+                tmp.add(p);
+                result.put(p.getName(),tmp);
+            }
+        }
+        return result;
+    }
+
     public void get_files(String path, List<File> files){
         File f = new File(path);
         File[] list = f.listFiles();
@@ -139,7 +172,7 @@ public class FrontServlet extends HttpServlet{
             }
         }
     }
-    public void setClass(HashMap<String,String> p,Object c){
+    public void setClass(HashMap<String,String> p,HashMap<String,Vector<Part>> parts,Object c){
         Reflection reflection = new Reflection();
         p.forEach(
                 (key,value)
@@ -165,6 +198,22 @@ public class FrontServlet extends HttpServlet{
                         }
                     }
                 }
+        );
+        parts.forEach(
+                (key,value)
+                        -> {
+                    String to_compare = "set";
+                    to_compare = to_compare + key;
+                    for (int j = 0; j < c.getClass().getDeclaredMethods().length; j++) {
+                        if (c.getClass().getDeclaredMethods()[j].getName().equalsIgnoreCase(to_compare)) {
+                            Method method = c.getClass().getDeclaredMethods()[j];
+                            String name =  method.getParameterTypes()[0].getName();
+                            try {
+                                method.invoke(c,reflection.caster(name).invoke(reflection,value));
+                            } catch (Exception ignored) { }
+                        }
+                        }
+                    }
         );
     }
 

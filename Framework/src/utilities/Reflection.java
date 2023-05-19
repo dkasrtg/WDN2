@@ -1,11 +1,11 @@
 package utilities;
 
-import java.lang.reflect.Constructor;
+import etu1995.framework.FileUpload;
+
+import javax.servlet.http.Part;
+import java.io.IOException;
 import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Vector;
 
 public class Reflection {
@@ -104,9 +104,41 @@ public class Reflection {
             case "java.lang.String":
                 result = String.class.getDeclaredMethod("valueOf", Object.class);
                 break;
+            case "[Ljava.lang.String;":
+                result = Reflection.class.getDeclaredMethod("toArray", String.class);
+                break;
+            case "etu1995.framework.FileUpload":
+                result = Reflection.class.getDeclaredMethod("toFileUpload", Vector.class);
+                break;
+            case "[Letu1995.framework.FileUpload;":
+                result = Reflection.class.getDeclaredMethod("toFileUploadArray", Vector.class);
+                break;
         }
         return result;
     }
+
+    public static String[] toArray(String p){
+        String ox = p.substring(1,p.length()-1);
+        return ox.split(", ");
+    }
+    public static FileUpload toFileUpload(Vector<Part> parts) throws Exception {
+        Part part = parts.get(0);
+        String name = part.getName();
+        byte[] bytes = part.getInputStream().readAllBytes();
+        return new FileUpload(name,bytes);
+    }
+
+    public static  FileUpload[] toFileUploadArray(Vector<Part> parts) throws Exception{
+        FileUpload[] fileUploads = new FileUpload[parts.size()];
+        for (int i = 0; i < fileUploads.length; i++) {
+            String name = parts.get(i).getName();
+            byte[] bytes = parts.get(i).getInputStream().readAllBytes();
+            fileUploads[i] = new FileUpload(name,bytes);
+        }
+        return fileUploads;
+    }
+
+
 //    public Object clone(Object object) throws Exception{
 //        Constructor constructor = object.getClass().getConstructor();
 //        Object result = constructor.newInstance();
