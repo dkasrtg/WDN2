@@ -1,6 +1,7 @@
 package etu1995.framework.servlet;
 
 import annotations.MappingUrl;
+import annotations.Scope;
 import etu1995.framework.Mapping;
 import etu1995.framework.ModelView;
 
@@ -22,12 +23,17 @@ import utilities.*;
 @MultipartConfig
 public class FrontServlet extends HttpServlet{
     HashMap<String, Mapping> MappingUrls;
+    HashMap<String, Object> Singletons;
+    Reflection reflection;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         try {
+            setReflection(new Reflection());
+            setSingletons(new HashMap<>());
             setMappingUrls(new HashMap<>(),getInitParameter("path"));
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -51,7 +57,15 @@ public class FrontServlet extends HttpServlet{
         }
     }
 
-    public void processRequest(HttpServletRequest req,HttpServletResponse resp) throws Exception {
+    public void setReflection(Reflection reflection) {
+        this.reflection = reflection;
+    }
+
+    public Reflection getReflection() {
+        return reflection;
+    }
+
+    public void processRequest(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         String url = req.getRequestURL().toString();
         int lst = url.lastIndexOf('/');
         String last = url.substring(lst+1);
@@ -63,9 +77,8 @@ public class FrontServlet extends HttpServlet{
         if (getMappingUrls().containsKey(last)){
             Mapping tmp = getMappingUrls().get(last);
             Class<?> cls = Class.forName(tmp.getClassName());
-            Reflection r  = new Reflection();
-            Method m = r.method_by(tmp.getMethod(),cls.newInstance());
-            Object c = cls.newInstance();
+            Object c = instantiate(cls);
+            Method m = getReflection().method_by(tmp.getMethod(),c);
             HashMap<String,String> p = parameters(req);
             HashMap<String,Vector<Part>> part = parts(req);
             setClass(p,part,c);
@@ -73,9 +86,9 @@ public class FrontServlet extends HttpServlet{
             Object[] obj =  new Object[parameters.length];
             for (int i = 0; i < parameters.length; i++) {
                 if (p.containsKey(parameters[i].getName())){
-                    obj[i] = r.caster(parameters[i].getType().getName()).invoke(r,p.get(parameters[i].getName()));
+                    obj[i] = getReflection().caster(parameters[i].getType().getName()).invoke(getReflection(),p.get(parameters[i].getName()));
                 } else if (part.containsKey(parameters[i].getName())) {
-                    obj[i] = r.caster(parameters[i].getType().getName()).invoke(r,part.get(parameters[i].getName()));
+                    obj[i] = getReflection().caster(parameters[i].getType().getName()).invoke(getReflection(),part.get(parameters[i].getName()));
                 } else {
                     obj[i] = null;
                 }
@@ -116,6 +129,12 @@ public class FrontServlet extends HttpServlet{
             for (Method m : cls.getDeclaredMethods()){
                 if (m.isAnnotationPresent(MappingUrl.class)){
                     getMappingUrls().put(m.getAnnotation(MappingUrl.class).url(),new Mapping(path,m.getName()));
+                }
+            }
+            if (cls.isAnnotationPresent(Scope.class)){
+                Scope scope = cls.getAnnotation(Scope.class);
+                if (Objects.equals(scope.type(), "singleton")) {
+                    getSingletons().put(path, null);
                 }
             }
         }
@@ -173,7 +192,6 @@ public class FrontServlet extends HttpServlet{
         }
     }
     public void setClass(HashMap<String,String> p,HashMap<String,Vector<Part>> parts,Object c){
-        Reflection reflection = new Reflection();
         p.forEach(
                 (key,value)
                         -> {
@@ -191,7 +209,7 @@ public class FrontServlet extends HttpServlet{
                             }
                             else {
                                 try {
-                                    method.invoke(c,reflection.caster(name).invoke(reflection,value));
+                                    method.invoke(c,getReflection().caster(name).invoke(getReflection(),value));
                                 }
                                 catch (Exception ignored){}
                             }
@@ -209,7 +227,7 @@ public class FrontServlet extends HttpServlet{
                             Method method = c.getClass().getDeclaredMethods()[j];
                             String name =  method.getParameterTypes()[0].getName();
                             try {
-                                method.invoke(c,reflection.caster(name).invoke(reflection,value));
+                                method.invoke(c,getReflection().caster(name).invoke(getReflection(),value));
                             } catch (Exception ignored) { }
                         }
                         }
@@ -217,4 +235,25 @@ public class FrontServlet extends HttpServlet{
         );
     }
 
+    public HashMap<String, Object> getSingletons() {
+        return Singletons;
+    }
+
+    public void setSingletons(HashMap<String, Object> singletons) {
+        Singletons = singletons;
+    }
+
+    public Object instantiate(Class<?> cls) throws Exception {
+        String name = cls.getCanonicalName();
+        if(getSingletons().containsKey(name)){
+            if (getSingletons().get(name)!=null) {
+                getReflection().nullos(getSingletons().get(name));
+            }
+            else {
+                getSingletons().replace(name,cls.newInstance());
+            }
+            return getSingletons().get(name);
+        }
+        return cls.newInstance();
+    }
 }

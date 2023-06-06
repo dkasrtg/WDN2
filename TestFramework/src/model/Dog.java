@@ -1,14 +1,17 @@
 package model;
 
 import annotations.MappingUrl;
+import annotations.Scope;
 import etu1995.framework.ModelView;
 
-import java.util.HashMap;
-
+@Scope(type = "singleton")
 public class Dog {
     String name;
 
     int age;
+
+    boolean is_pro;
+
 
     public Dog(){
 
@@ -35,6 +38,14 @@ public class Dog {
         return age;
     }
 
+    public void setIs_pro(boolean is_pro) {
+        this.is_pro = is_pro;
+    }
+
+    public boolean getIs_pro() {
+        return is_pro;
+    }
+
     @MappingUrl(url = "dog-all")
     public ModelView findAll(Integer length){
         ModelView modelView = new ModelView("dog.jsp");
@@ -52,4 +63,20 @@ public class Dog {
         System.out.println("param "+age);
     }
 
+    @MappingUrl(url = "dog-input")
+    public ModelView  dog_input(){
+        return new ModelView("doginput.jsp");
+    }
+
+    @MappingUrl(url = "dog-input2")
+    public ModelView  dog_input2(){
+        return new ModelView("doginput2.jsp");
+    }
+
+    @MappingUrl(url = "dog-add")
+    public void dogadd(){
+        System.out.println("get "+getName());
+        System.out.println("get "+getAge());
+        System.out.println("get "+getIs_pro());
+    }
 }
