@@ -4,39 +4,13 @@ import etu1995.framework.FileUpload;
 
 import javax.servlet.http.Part;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.Vector;
 
 public class Reflection {
-//    public Vector<Method> the_getters(Object object) throws Exception{
-//        Vector<Method> methods = new Vector<>();
-//        Vector<String> real = columns_name(object);
-//        for (int i = 0; i < real.size(); i++) {
-//            String to_compare = "get";
-//            to_compare = to_compare + real.get(i);
-//            for (int j = 0; j < object.getClass().getDeclaredMethods().length; j++) {
-//                if (object.getClass().getDeclaredMethods()[j].getName().equalsIgnoreCase(to_compare)) {
-//                    methods.add(object.getClass().getDeclaredMethods()[j]);
-//                }
-//            }
-//        }
-//        return methods;
-//    }
-    public Vector<Method> the_setters(Object object) throws Exception{
-        Vector<Method> methods = new Vector<>();
-        Vector<String> real = the_attributes(object);
-        for (int i = 0; i < real.size(); i++) {
-            String to_compare = "set";
-            to_compare = to_compare + real.get(i);
-            for (int j = 0; j < object.getClass().getDeclaredMethods().length; j++) {
-                if (object.getClass().getDeclaredMethods()[j].getName().equalsIgnoreCase(to_compare)) {
-                    methods.add(object.getClass().getDeclaredMethods()[j]);
-                }
-            }
-        }
-        return methods;
-    }
+
     public Method method_by(String method,Object object){
         for (int i=0;i<object.getClass().getDeclaredMethods().length;i++){
             if (object.getClass().getDeclaredMethods()[i].getName().equals(method)){
@@ -45,18 +19,7 @@ public class Reflection {
         }
         return null;
     }
-    public Vector<Method> corres(Vector<Method> methods,Object object){
-        Vector<Method> result = new Vector<>();
-        for (int i=0;i<methods.size();i++){
-            String ns = "get"+methods.get(i).getName().substring(methods.get(i).getName().indexOf("_")+1);
-            for (int j=0;j<object.getClass().getDeclaredMethods().length;j++){
-                if (object.getClass().getDeclaredMethods()[i].getName().equalsIgnoreCase(ns)){
-                    result.add(object.getClass().getDeclaredMethods()[i]);
-                }
-            }
-        }
-        return result;
-    }
+
     public Vector<String> the_attributes(Object object){
         Vector<String> result = new Vector<>();
         for (int i=0;i<object.getClass().getDeclaredFields().length;i++){
@@ -64,25 +27,7 @@ public class Reflection {
         }
         return result;
     }
-    public String query_syntax(Object object){
-        String result = "";
-        String name = object.getClass().getName();
-        switch (name){
-            case "java.lang.Integer":
-            case "java.lang.Double":
-                result = String.valueOf(object);
-                break;
-            case "java.lang.String":
-            case "java.sql.Date":
-            case "java.sql.Time":
-                result = "'" + object + "'";
-                break;
-            case "java.lang.Boolean":
-                result = String.valueOf(object).toUpperCase();
-                break;
-        }
-        return result;
-    }
+
     public Method caster(String name) throws Exception {
         Method result = null;
         switch (name) {
@@ -138,7 +83,88 @@ public class Reflection {
         return fileUploads;
     }
 
+    public void nullos(Object object){
+        Vector<String> attributes = the_attributes(object);
+        for (int i = 0; i < attributes.size(); i++) {
+            String to_compare = "set";
+            to_compare = to_compare + attributes.get(i);
+            for (int j = 0; j < object.getClass().getDeclaredMethods().length; j++) {
+                if (object.getClass().getDeclaredMethods()[j].getName().equalsIgnoreCase(to_compare)) {
+                    try {
+                        object.getClass().getDeclaredMethods()[j].invoke(object, (Object) null);
+                    } catch (Exception e){
+                        try {
+                            object.getClass().getDeclaredMethods()[j].invoke(object, 0);
+                        }catch (Exception f){
+                            try {
+                                object.getClass().getDeclaredMethods()[j].invoke(object, false);
+                            }catch (Exception ignored){}
+                        }
+                    }
+                }
+            }
+        }
+    }
 
+    //    public Vector<Method> the_getters(Object object) throws Exception{
+//        Vector<Method> methods = new Vector<>();
+//        Vector<String> real = columns_name(object);
+//        for (int i = 0; i < real.size(); i++) {
+//            String to_compare = "get";
+//            to_compare = to_compare + real.get(i);
+//            for (int j = 0; j < object.getClass().getDeclaredMethods().length; j++) {
+//                if (object.getClass().getDeclaredMethods()[j].getName().equalsIgnoreCase(to_compare)) {
+//                    methods.add(object.getClass().getDeclaredMethods()[j]);
+//                }
+//            }
+//        }
+//        return methods;
+//    }
+//    public Vector<Method> the_setters(Object object) throws Exception{
+//        Vector<Method> methods = new Vector<>();
+//        Vector<String> real = the_attributes(object);
+//        for (int i = 0; i < real.size(); i++) {
+//            String to_compare = "set";
+//            to_compare = to_compare + real.get(i);
+//            for (int j = 0; j < object.getClass().getDeclaredMethods().length; j++) {
+//                if (object.getClass().getDeclaredMethods()[j].getName().equalsIgnoreCase(to_compare)) {
+//                    methods.add(object.getClass().getDeclaredMethods()[j]);
+//                }
+//            }
+//        }
+//        return methods;
+//    }
+//    public Vector<Method> corres(Vector<Method> methods,Object object){
+//        Vector<Method> result = new Vector<>();
+//        for (int i=0;i<methods.size();i++){
+//            String ns = "get"+methods.get(i).getName().substring(methods.get(i).getName().indexOf("_")+1);
+//            for (int j=0;j<object.getClass().getDeclaredMethods().length;j++){
+//                if (object.getClass().getDeclaredMethods()[i].getName().equalsIgnoreCase(ns)){
+//                    result.add(object.getClass().getDeclaredMethods()[i]);
+//                }
+//            }
+//        }
+//        return result;
+//    }
+//    public String query_syntax(Object object){
+//        String result = "";
+//        String name = object.getClass().getName();
+//        switch (name){
+//            case "java.lang.Integer":
+//            case "java.lang.Double":
+//                result = String.valueOf(object);
+//                break;
+//            case "java.lang.String":
+//            case "java.sql.Date":
+//            case "java.sql.Time":
+//                result = "'" + object + "'";
+//                break;
+//            case "java.lang.Boolean":
+//                result = String.valueOf(object).toUpperCase();
+//                break;
+//        }
+//        return result;
+//    }
 //    public Object clone(Object object) throws Exception{
 //        Constructor constructor = object.getClass().getConstructor();
 //        Object result = constructor.newInstance();

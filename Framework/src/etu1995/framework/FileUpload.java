@@ -33,4 +33,6 @@ public class FileUpload {
     public void setBytes(byte[] bytes) {
         this.bytes = bytes;
     }
+
+//    save file to directory or database
 }
