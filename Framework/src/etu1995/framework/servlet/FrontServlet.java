@@ -1,5 +1,6 @@
 package etu1995.framework.servlet;
 
+import annotations.Authentication;
 import annotations.MappingUrl;
 import annotations.Scope;
 import etu1995.framework.Mapping;
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -24,6 +26,7 @@ import utilities.*;
 public class FrontServlet extends HttpServlet{
     HashMap<String, Mapping> MappingUrls;
     HashMap<String, Object> Singletons;
+    String session;
     Reflection reflection;
 
     @Override
@@ -33,7 +36,7 @@ public class FrontServlet extends HttpServlet{
             setReflection(new Reflection());
             setSingletons(new HashMap<>());
             setMappingUrls(new HashMap<>(),getInitParameter("path"));
-
+            setSession(getInitParameter("session"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -65,6 +68,14 @@ public class FrontServlet extends HttpServlet{
         return reflection;
     }
 
+    public void setSession(String session) {
+        this.session = session;
+    }
+
+    public String getSession() {
+        return session;
+    }
+
     public void processRequest(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         String url = req.getRequestURL().toString();
         int lst = url.lastIndexOf('/');
@@ -79,6 +90,11 @@ public class FrontServlet extends HttpServlet{
             Class<?> cls = Class.forName(tmp.getClassName());
             Object c = instantiate(cls);
             Method m = getReflection().method_by(tmp.getMethod(),c);
+            boolean auth = authenticator(m,req);
+            if (!auth){
+                acces_denied(resp);
+                return;
+            }
             HashMap<String,String> p = parameters(req);
             HashMap<String,Vector<Part>> part = parts(req);
             setClass(p,part,c);
@@ -99,6 +115,7 @@ public class FrontServlet extends HttpServlet{
                         (key,value)
                                 -> req.setAttribute(key,value)
                 );
+                session_setter(modelView.getSession(),req);
                 RequestDispatcher requestDispatcher = req.getRequestDispatcher(modelView.getView());
                 requestDispatcher.forward(req,resp);
             }
@@ -255,5 +272,42 @@ public class FrontServlet extends HttpServlet{
             return getSingletons().get(name);
         }
         return cls.newInstance();
+    }
+
+    public void session_setter(HashMap<String,Object> session,HttpServletRequest request){
+        session.forEach(
+                (key,value) -> {
+                    request.getSession().setAttribute(key,value);
+        }
+        );
+    }
+
+    public boolean authenticator(Method method,HttpServletRequest request){
+        if (method.isAnnotationPresent(Authentication.class)){
+            Authentication authentication = method.getAnnotation(Authentication.class);
+            String users = authentication.users();
+            if (Objects.equals(users, "")){
+                return true;
+            }
+            else {
+                String[] valid = users.split(",");
+                String auth = (String) request.getSession().getAttribute(getSession());
+                for (int i = 0; i < valid.length; i++) {
+                    if (Objects.equals(valid[i], auth)){
+                        return true;
+                    }
+                }
+            }
+        }
+        else {
+            return true;
+        }
+        return false;
+    }
+
+    public void acces_denied(HttpServletResponse response) throws Exception {
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        out.println("<html><p>Access denied</p></html>");
     }
 }
