@@ -105,8 +105,7 @@ public class Reflection {
             }
         }
     }
-
-    //    public Vector<Method> the_getters(Object object) throws Exception{
+//    public Vector<Method> the_getters(Object object) throws Exception{
 //        Vector<Method> methods = new Vector<>();
 //        Vector<String> real = columns_name(object);
 //        for (int i = 0; i < real.size(); i++) {
