@@ -1,6 +1,7 @@
 package model;
 
 import annotations.MappingUrl;
+import annotations.RestAPI;
 import annotations.Scope;
 import annotations.Session;
 import etu1995.framework.ModelView;
@@ -66,6 +67,14 @@ public class Dog {
         modelView.addItem("length",length);
         modelView.setJson(true);
         return modelView;
+    }
+
+    @MappingUrl(url = "dog-all2")
+    @RestAPI
+    public String[] findAll2(Integer length){
+        return new String[]{
+                "a","f","f"
+        };
     }
 
     @MappingUrl(url = "dog-dogger")

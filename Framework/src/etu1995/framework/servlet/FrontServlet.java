@@ -138,6 +138,11 @@ public class FrontServlet extends HttpServlet{
                 requestDispatcher.forward(req,resp);
             }
             else {
+                if (m.getReturnType()!=Void.TYPE){
+                    Object o = m.invoke(c,obj);
+                    json(resp,o);
+                    return;
+                }
                 m.invoke(c, obj);
             }
         }
@@ -329,10 +334,19 @@ public class FrontServlet extends HttpServlet{
         out.println("<html><p>Access denied</p></html>");
     }
 
-    public void json(HttpServletResponse response,HashMap<String,Object> hashMap) throws Exception {
+//    public void json(HttpServletResponse response,HashMap<String,Object> hashMap) throws Exception {
+//        response.setContentType("text/html");
+//        PrintWriter out = response.getWriter();
+//        String rs = new Gson().toJson(hashMap);
+//        out.println("<html>");
+//        out.println(rs);
+//        out.println("</html>");
+//    }
+
+    public void json(HttpServletResponse response,Object o) throws Exception {
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
-        String rs = new Gson().toJson(hashMap);
+        String rs = new Gson().toJson(o);
         out.println("<html>");
         out.println(rs);
         out.println("</html>");
