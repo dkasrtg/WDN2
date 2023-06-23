@@ -64,6 +64,7 @@ public class Dog {
         modelView.addItem("dogs",new String[]{"Q","W","R"});
         modelView.addItem("alik",new Dog("Alik",20));
         modelView.addItem("length",length);
+        modelView.setJson(true);
         return modelView;
     }
 

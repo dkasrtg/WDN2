@@ -4,6 +4,7 @@ import annotations.Authentication;
 import annotations.MappingUrl;
 import annotations.Scope;
 import annotations.Session;
+import com.google.gson.Gson;
 import etu1995.framework.Mapping;
 import etu1995.framework.ModelView;
 
@@ -129,6 +130,10 @@ public class FrontServlet extends HttpServlet{
                                 -> req.setAttribute(key,value)
                 );
                 session_setter(modelView.getSession(),req);
+                if (modelView.getJson()){
+                    json(resp,modelView.getData());
+                    return;
+                }
                 RequestDispatcher requestDispatcher = req.getRequestDispatcher(modelView.getView());
                 requestDispatcher.forward(req,resp);
             }
@@ -322,6 +327,15 @@ public class FrontServlet extends HttpServlet{
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         out.println("<html><p>Access denied</p></html>");
+    }
+
+    public void json(HttpServletResponse response,HashMap<String,Object> hashMap) throws Exception {
+        response.setContentType("text/html");
+        PrintWriter out = response.getWriter();
+        String rs = new Gson().toJson(hashMap);
+        out.println("<html>");
+        out.println(rs);
+        out.println("</html>");
     }
 
     public void session_giver(Method m,Object c,HttpServletRequest request) throws Exception {
