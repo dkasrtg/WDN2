@@ -2,7 +2,10 @@ package model;
 
 import annotations.MappingUrl;
 import annotations.Scope;
+import annotations.Session;
 import etu1995.framework.ModelView;
+
+import java.util.HashMap;
 
 @Scope(type = "singleton")
 public class Dog {
@@ -12,6 +15,7 @@ public class Dog {
 
     boolean is_pro;
 
+    HashMap<String,Object> sessions;
 
     public Dog(){
 
@@ -46,6 +50,14 @@ public class Dog {
         return is_pro;
     }
 
+    public void setSessions(HashMap<String, Object> sessions) {
+        this.sessions = sessions;
+    }
+
+    public HashMap<String, Object> getSessions() {
+        return sessions;
+    }
+
     @MappingUrl(url = "dog-all")
     public ModelView findAll(Integer length){
         ModelView modelView = new ModelView("dog.jsp");
@@ -65,7 +77,10 @@ public class Dog {
 
     @MappingUrl(url = "dog-input")
     public ModelView  dog_input(){
-        return new ModelView("doginput.jsp");
+        ModelView modelView = new ModelView("doginput.jsp");
+        modelView.addSession("po","po");
+        modelView.addSession("co",120);
+        return modelView;
     }
 
     @MappingUrl(url = "dog-input2")
@@ -78,5 +93,14 @@ public class Dog {
         System.out.println("get "+getName());
         System.out.println("get "+getAge());
         System.out.println("get "+getIs_pro());
+    }
+
+    @MappingUrl(url = "dog-session")
+    @Session
+    public void dogsession(){
+        getSessions().forEach(
+                (key,value)
+                    -> System.out.println(key+" : "+value)
+        );
     }
 }

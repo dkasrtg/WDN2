@@ -3,6 +3,7 @@ package etu1995.framework.servlet;
 import annotations.Authentication;
 import annotations.MappingUrl;
 import annotations.Scope;
+import annotations.Session;
 import etu1995.framework.Mapping;
 import etu1995.framework.ModelView;
 
@@ -15,6 +16,7 @@ import javax.servlet.http.Part;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -26,6 +28,7 @@ import utilities.*;
 public class FrontServlet extends HttpServlet{
     HashMap<String, Mapping> MappingUrls;
     HashMap<String, Object> Singletons;
+    String authentication;
     String session;
     Reflection reflection;
 
@@ -36,6 +39,7 @@ public class FrontServlet extends HttpServlet{
             setReflection(new Reflection());
             setSingletons(new HashMap<>());
             setMappingUrls(new HashMap<>(),getInitParameter("path"));
+            setAuthentication(getInitParameter("authentication"));
             setSession(getInitParameter("session"));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -68,6 +72,14 @@ public class FrontServlet extends HttpServlet{
         return reflection;
     }
 
+    public void setAuthentication(String authentication) {
+        this.authentication = authentication;
+    }
+
+    public String getAuthentication() {
+        return authentication;
+    }
+
     public void setSession(String session) {
         this.session = session;
     }
@@ -92,9 +104,10 @@ public class FrontServlet extends HttpServlet{
             Method m = getReflection().method_by(tmp.getMethod(),c);
             boolean auth = authenticator(m,req);
             if (!auth){
-                acces_denied(resp);
+                access_denied(resp);
                 return;
             }
+            session_giver(m,c,req);
             HashMap<String,String> p = parameters(req);
             HashMap<String,Vector<Part>> part = parts(req);
             setClass(p,part,c);
@@ -291,7 +304,7 @@ public class FrontServlet extends HttpServlet{
             }
             else {
                 String[] valid = users.split(",");
-                String auth = (String) request.getSession().getAttribute(getSession());
+                String auth = (String) request.getSession().getAttribute(getAuthentication());
                 for (int i = 0; i < valid.length; i++) {
                     if (Objects.equals(valid[i], auth)){
                         return true;
@@ -305,9 +318,28 @@ public class FrontServlet extends HttpServlet{
         return false;
     }
 
-    public void acces_denied(HttpServletResponse response) throws Exception {
+    public void access_denied(HttpServletResponse response) throws Exception {
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
         out.println("<html><p>Access denied</p></html>");
+    }
+
+    public void session_giver(Method m,Object c,HttpServletRequest request) throws Exception {
+        if (m.isAnnotationPresent(Session.class)){
+            String to_compare = "set"+getSession();
+            for (int j = 0; j < c.getClass().getDeclaredMethods().length; j++) {
+                if (c.getClass().getDeclaredMethods()[j].getName().equalsIgnoreCase(to_compare)) {
+                    Method method = c.getClass().getDeclaredMethods()[j];
+                    HashMap<String,Object> map = new HashMap<>();
+                    Enumeration<String> attributes = request.getSession().getAttributeNames();
+                    while (attributes.hasMoreElements()) {
+                        String attribute = (String) attributes.nextElement();
+                        map.put(attribute,request.getSession().getAttribute(attribute));
+                    }
+                    method.invoke(c,map);
+                    return;
+                }
+            }
+        }
     }
 }
