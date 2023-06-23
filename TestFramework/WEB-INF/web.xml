@@ -15,8 +15,12 @@
             <param-value>C:\xampp\tomcat\webapps\TestFramework\WEB-INF\classes\model</param-value>
         </init-param>
         <init-param>
-            <param-name>session</param-name>
+            <param-name>authentication</param-name>
             <param-value>is_connected</param-value>
+        </init-param>
+        <init-param>
+            <param-name>session</param-name>
+            <param-value>sessions</param-value>
         </init-param>
     </servlet>
 

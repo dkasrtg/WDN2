@@ -12,7 +12,6 @@ public class Login {
     }
 
     @MappingUrl(url = "input_login")
-
     public ModelView input_login(){
         ModelView modelView = new ModelView("login.jsp");
         modelView.addItem("status"," ");
