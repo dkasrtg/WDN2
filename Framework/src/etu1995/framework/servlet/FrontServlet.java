@@ -8,16 +8,16 @@ import com.google.gson.Gson;
 import etu1995.framework.Mapping;
 import etu1995.framework.ModelView;
 
-import javax.servlet.*;
-import javax.servlet.annotation.MultipartConfig;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
+import etu1995.framework.error.Error;
+import jakarta.servlet.*;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -32,6 +32,7 @@ public class FrontServlet extends HttpServlet{
     String authentication;
     String session;
     Reflection reflection;
+    String pages;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -42,6 +43,7 @@ public class FrontServlet extends HttpServlet{
             setMappingUrls(new HashMap<>(),getInitParameter("path"));
             setAuthentication(getInitParameter("authentication"));
             setSession(getInitParameter("session"));
+            setPages(getInitParameter("pages"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -63,6 +65,14 @@ public class FrontServlet extends HttpServlet{
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void setPages(String pages) {
+        this.pages = pages;
+    }
+
+    public String getPages() {
+        return pages;
     }
 
     public void setReflection(Reflection reflection) {
@@ -105,7 +115,7 @@ public class FrontServlet extends HttpServlet{
             Method m = getReflection().method_by(tmp.getMethod(),c);
             boolean auth = authenticator(m,req);
             if (!auth){
-                access_denied(resp);
+                writer(resp, Error.fourzerothree());
                 return;
             }
             session_giver(m,c,req);
@@ -124,7 +134,13 @@ public class FrontServlet extends HttpServlet{
                 }
             }
             if (m.getReturnType() == ModelView.class){
-                ModelView modelView = (ModelView) m.invoke(c,obj);
+                ModelView modelView = null;
+                try {
+                    modelView = (ModelView) m.invoke(c,obj);
+                }catch (Exception e){
+                    writer(resp,Error.error(e));
+                    return;
+                }
                 modelView.getData().forEach(
                         (key,value)
                                 -> req.setAttribute(key,value)
@@ -134,17 +150,34 @@ public class FrontServlet extends HttpServlet{
                     json(resp,modelView.getData());
                     return;
                 }
-                RequestDispatcher requestDispatcher = req.getRequestDispatcher(modelView.getView());
+                String page = "./pages/"+modelView.getView();
+                if (getServletContext().getResource(page)==null){
+                    writer(resp,Error.fourzerofourfile(page));
+                    return;
+                }
+                RequestDispatcher requestDispatcher = req.getRequestDispatcher(page);
                 requestDispatcher.forward(req,resp);
             }
             else {
                 if (m.getReturnType()!=Void.TYPE){
-                    Object o = m.invoke(c,obj);
+                    Object o = null;
+                    try {
+                        o = m.invoke(c,obj);
+                    }catch (Exception e){
+                        Error.error(e);
+                    }
                     json(resp,o);
                     return;
                 }
-                m.invoke(c, obj);
+                try {
+                    m.invoke(c, obj);
+                }catch (Exception e){
+                    Error.error(e);
+                }
             }
+        }
+        else {
+            writer(resp,Error.fourzerofour());
         }
     }
 
@@ -328,20 +361,11 @@ public class FrontServlet extends HttpServlet{
         return false;
     }
 
-    public void access_denied(HttpServletResponse response) throws Exception {
+    public void writer(HttpServletResponse response,String content) throws Exception {
         response.setContentType("text/html");
         PrintWriter out = response.getWriter();
-        out.println("<html><p>Access denied</p></html>");
+        out.println(content);
     }
-
-//    public void json(HttpServletResponse response,HashMap<String,Object> hashMap) throws Exception {
-//        response.setContentType("text/html");
-//        PrintWriter out = response.getWriter();
-//        String rs = new Gson().toJson(hashMap);
-//        out.println("<html>");
-//        out.println(rs);
-//        out.println("</html>");
-//    }
 
     public void json(HttpServletResponse response,Object o) throws Exception {
         response.setContentType("text/html");

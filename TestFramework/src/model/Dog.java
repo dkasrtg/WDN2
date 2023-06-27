@@ -87,6 +87,8 @@ public class Dog {
 
     @MappingUrl(url = "dog-input")
     public ModelView  dog_input(){
+        String po  = "sdvdsv";
+        double coco = Double.parseDouble(po);
         ModelView modelView = new ModelView("doginput.jsp");
         modelView.addSession("po","po");
         modelView.addSession("co",120);
@@ -94,8 +96,8 @@ public class Dog {
     }
 
     @MappingUrl(url = "dog-input2")
-    public ModelView  dog_input2(){
-        return new ModelView("doginput2.jsp");
+    public ModelView  dog_input2() throws Exception {
+        return new ModelView("dogut2.jsp");
     }
 
     @MappingUrl(url = "dog-add")
