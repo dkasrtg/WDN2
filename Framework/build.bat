@@ -10,6 +10,7 @@ javac -d ../temp/ ./etu1995/framework/Mapping.java
 javac -d ../temp/ ./etu1995/framework/ModelView.java
 javac -d ../temp/ ./etu1995/framework/FileUpload.java
 javac -d ../temp/ ./utilities/Reflection.java
+javac -d ../temp/ ./etu1995/framework/error/Error.java
 javac -cp C:/xampp/tomcat/lib/gson-2.8.2.jar;C:/xampp/tomcat/lib/servlet-api.jar;C:/xampp/tomcat/lib/jsp-api.jar;../temp -d ../temp ./etu1995/framework/servlet/FrontServlet.java
 
 cd ../temp
