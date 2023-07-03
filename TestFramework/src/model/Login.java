@@ -11,14 +11,14 @@ public class Login {
 
     }
 
-    @MappingUrl(url = "input_login")
+    @MappingUrl(url = "input_login.do")
     public ModelView input_login(){
         ModelView modelView = new ModelView("login.jsp");
         modelView.addItem("status"," ");
         return modelView;
     }
 
-    @MappingUrl(url = "treat_login")
+    @MappingUrl(url = "treat_login.do")
     public ModelView treat_login(String name,String password){
         String page = "logged.jsp";
         ModelView modelView = new ModelView(page);

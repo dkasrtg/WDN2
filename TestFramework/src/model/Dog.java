@@ -59,7 +59,7 @@ public class Dog {
         return sessions;
     }
 
-    @MappingUrl(url = "dog-all")
+    @MappingUrl(url = "dog-all.do")
     public ModelView findAll(Integer length){
         ModelView modelView = new ModelView("dog.jsp");
         modelView.addItem("dogs",new String[]{"Q","W","R"});
@@ -69,7 +69,7 @@ public class Dog {
         return modelView;
     }
 
-    @MappingUrl(url = "dog-all2")
+    @MappingUrl(url = "dog-all2.do")
     @RestAPI
     public String[] findAll2(Integer length){
         return new String[]{
@@ -77,7 +77,7 @@ public class Dog {
         };
     }
 
-    @MappingUrl(url = "dog-dogger")
+    @MappingUrl(url = "dog-dogger.do")
     public void dogme(String name, Integer age){
         System.out.println("get "+getName());
         System.out.println("get "+getAge());
@@ -85,29 +85,29 @@ public class Dog {
         System.out.println("param "+age);
     }
 
-    @MappingUrl(url = "dog-input")
+    @MappingUrl(url = "dog-input.do")
     public ModelView  dog_input(){
-        String po  = "sdvdsv";
-        double coco = Double.parseDouble(po);
+//        String po  = "sdvdsv";
+//        double coco = Double.parseDouble(po);
         ModelView modelView = new ModelView("doginput.jsp");
         modelView.addSession("po","po");
         modelView.addSession("co",120);
         return modelView;
     }
 
-    @MappingUrl(url = "dog-input2")
+    @MappingUrl(url = "dog-input2.do")
     public ModelView  dog_input2() throws Exception {
         return new ModelView("dogut2.jsp");
     }
 
-    @MappingUrl(url = "dog-add")
+    @MappingUrl(url = "dog-add.do")
     public void dogadd(){
         System.out.println("get "+getName());
         System.out.println("get "+getAge());
         System.out.println("get "+getIs_pro());
     }
 
-    @MappingUrl(url = "dog-session")
+    @MappingUrl(url = "dog-session.do")
     @Session
     public void dogsession(){
         getSessions().forEach(

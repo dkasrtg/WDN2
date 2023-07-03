@@ -35,7 +35,7 @@ public class Error {
                 "        width: fit-content;\n" +
                 "        height: fit-content;\n" +
                 "        margin: auto;\n" +
-                "        margin-top: 30%;\n" +
+                "        margin-top: 30vh;\n" +
                 "        align-items: center;\n" +
                 "    }\n" +
                 "    .a{\n" +
@@ -83,7 +83,7 @@ public class Error {
                 "        width: fit-content;\n" +
                 "        height: fit-content;\n" +
                 "        margin: auto;\n" +
-                "        margin-top: 30%;\n" +
+                "        margin-top: 30vh;\n" +
                 "        align-items: center;\n" +
                 "    }\n" +
                 "    .a{\n" +
@@ -163,7 +163,7 @@ public class Error {
                 "        width: fit-content;\n" +
                 "        height: fit-content;\n" +
                 "        margin: auto;\n" +
-                "        margin-top: 30%;\n" +
+                "        margin-top: 30vh;\n" +
                 "        align-items: center;\n" +
                 "    }\n" +
                 "    .a{\n" +
@@ -217,7 +217,7 @@ public class Error {
                 "        width: fit-content;\n" +
                 "        height: fit-content;\n" +
                 "        margin: auto;\n" +
-                "        margin-top: 30%;\n" +
+                "        margin-top: 30vh;\n" +
                 "        align-items: center;\n" +
                 "    }\n" +
                 "    .a{\n" +

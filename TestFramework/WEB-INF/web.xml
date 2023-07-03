@@ -23,10 +23,8 @@
             <param-value>sessions</param-value>
         </init-param>
     </servlet>
-
     <servlet-mapping>
         <servlet-name>etu1995.framework.servlet.FrontServlet</servlet-name>
-        <url-pattern>/</url-pattern>
+        <url-pattern>*.do</url-pattern>
     </servlet-mapping>
-
 </web-app>

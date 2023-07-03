@@ -9,7 +9,7 @@ public class Auth {
 
     }
 
-    @MappingUrl(url = "auth_1")
+    @MappingUrl(url = "auth_1.do")
     @Authentication(users = "admin")
     public ModelView auth1(){
         ModelView modelView = new ModelView("auth.jsp");
@@ -17,7 +17,7 @@ public class Auth {
         return modelView;
     }
 
-    @MappingUrl(url = "auth_2")
+    @MappingUrl(url = "auth_2.do")
     @Authentication(users = "admin,manager")
     public ModelView auth2(){
         ModelView modelView = new ModelView("auth.jsp");
@@ -25,7 +25,7 @@ public class Auth {
         return modelView;
     }
 
-    @MappingUrl(url = "auth_3")
+    @MappingUrl(url = "auth_3.do")
     public ModelView auth3(){
         ModelView modelView = new ModelView("auth.jsp");
         modelView.addItem("auth","Accessible for everyone");
