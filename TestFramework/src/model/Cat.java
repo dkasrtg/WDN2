@@ -63,17 +63,17 @@ public class Cat {
         return raw;
     }
 
-    @MappingUrl(url = "cat-all")
+    @MappingUrl(url = "cat-all.do")
     public ModelView findAll(){
         return new ModelView("cat.jsp");
     }
 
-    @MappingUrl(url = "cat-insert")
+    @MappingUrl(url = "cat-insert.do")
     public ModelView insert(){
         return new ModelView("test.jsp");
     }
 
-    @MappingUrl(url = "cat-get")
+    @MappingUrl(url = "cat-get.do")
     public void get(FileUpload kely,FileUpload[] be,String[] cara,int raw){
         System.out.println(kely.getName());
         System.out.println(be.length);

@@ -11,15 +11,13 @@ import etu1995.framework.ModelView;
 import etu1995.framework.error.Error;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.MultipartConfig;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.Part;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
+import jakarta.servlet.http.*;
+
+import java.io.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.*;
 
 import utilities.*;
@@ -33,6 +31,7 @@ public class FrontServlet extends HttpServlet{
     String session;
     Reflection reflection;
     String pages;
+    String context;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -44,6 +43,7 @@ public class FrontServlet extends HttpServlet{
             setAuthentication(getInitParameter("authentication"));
             setSession(getInitParameter("session"));
             setPages(getInitParameter("pages"));
+            setContext(getServletContext().getContextPath());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -65,6 +65,14 @@ public class FrontServlet extends HttpServlet{
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public void setContext(String context) {
+        this.context = context;
+    }
+
+    public String getContext() {
+        return context;
     }
 
     public void setPages(String pages) {
@@ -101,13 +109,7 @@ public class FrontServlet extends HttpServlet{
 
     public void processRequest(HttpServletRequest req, HttpServletResponse resp) throws Exception {
         String url = req.getRequestURL().toString();
-        int lst = url.lastIndexOf('/');
-        String last = url.substring(lst+1);
-        try {
-            if (!req.getQueryString().isEmpty()) {
-                url = url + "?" + req.getQueryString();
-            }
-        }catch (Exception ignored){}
+        String last = url.substring(url.lastIndexOf(getContext())+getContext().length()+1);
         if (getMappingUrls().containsKey(last)){
             Mapping tmp = getMappingUrls().get(last);
             Class<?> cls = Class.forName(tmp.getClassName());
@@ -146,13 +148,17 @@ public class FrontServlet extends HttpServlet{
                                 -> req.setAttribute(key,value)
                 );
                 session_setter(modelView.getSession(),req);
+                if (modelView.getInvalidateSession()){
+                    kill_all_sessions(req);
+                }
+                kill_sessions(modelView.getRemoveSessions(),req);
                 if (modelView.getJson()){
                     json(resp,modelView.getData());
                     return;
                 }
                 String page = "./pages/"+modelView.getView();
-                if (getServletContext().getResource(page)==null){
-                    writer(resp,Error.fourzerofourfile(page));
+                if (getServletContext().getResource(page)==null) {
+                    writer(resp, Error.fourzerofourfile(page));
                     return;
                 }
                 RequestDispatcher requestDispatcher = req.getRequestDispatcher(page);
@@ -180,7 +186,6 @@ public class FrontServlet extends HttpServlet{
             writer(resp,Error.fourzerofour());
         }
     }
-
 
     public HashMap<String, Mapping> getMappingUrls() {
         return MappingUrls;
@@ -392,6 +397,19 @@ public class FrontServlet extends HttpServlet{
                     return;
                 }
             }
+        }
+    }
+
+    public void kill_all_sessions(HttpServletRequest request){
+        Enumeration<String> enumeration = request.getSession().getAttributeNames();
+        while (enumeration.hasMoreElements()) {
+            request.getSession().removeAttribute(enumeration.nextElement());
+        }
+    }
+
+    public void kill_sessions(Vector<String> strings,HttpServletRequest request){
+        for (int i = 0; i < strings.size(); i++) {
+            request.getSession().removeAttribute(strings.get(i));
         }
     }
 }
