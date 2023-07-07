@@ -348,7 +348,8 @@ public class FrontServlet extends HttpServlet{
             Authentication authentication = method.getAnnotation(Authentication.class);
             String users = authentication.users();
             if (Objects.equals(users, "")){
-                return true;
+                String auth = (String) request.getSession().getAttribute(getAuthentication());
+                return auth != null;
             }
             else {
                 String[] valid = users.split(",");

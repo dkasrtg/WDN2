@@ -5,9 +5,10 @@ public class FileUpload {
     String path;
     byte[] bytes;
 
-    public FileUpload(String name,byte[] bytes){
+    public FileUpload(String name,byte[] bytes,String path){
         setName(name);
         setBytes(bytes);
+        setPath(path);
     }
 
     public String getName() {
@@ -34,5 +35,4 @@ public class FileUpload {
         this.bytes = bytes;
     }
 
-//    save file to directory or database
 }
