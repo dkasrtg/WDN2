@@ -20,6 +20,14 @@ public class ModelView {
         setRemoveSessions(new Vector<>());
     }
 
+    public ModelView() {
+        setData(new HashMap<>());
+        setSession(new HashMap<>());
+        setJson(false);
+        setInvalidateSession(false);
+        setRemoveSessions(new Vector<>());
+    }
+
     public boolean getInvalidateSession() {
         return invalidateSession;
     }

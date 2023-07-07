@@ -67,17 +67,21 @@ public class Reflection {
 
     public static FileUpload toFileUpload(Vector<Part> parts) throws Exception {
         Part part = parts.get(0);
-        String name = part.getName();
+        String name = part.getSubmittedFileName();
+        String headerValue = part.getHeader("content-disposition");
+        String filePath = headerValue.substring(headerValue.indexOf("filename=") + 10, headerValue.length() - 1); // Extract the file path
         byte[] bytes = part.getInputStream().readAllBytes();
-        return new FileUpload(name, bytes);
+        return new FileUpload(name, bytes,filePath);
     }
 
     public static FileUpload[] toFileUploadArray(Vector<Part> parts) throws Exception {
         FileUpload[] fileUploads = new FileUpload[parts.size()];
         for (int i = 0; i < fileUploads.length; i++) {
-            String name = parts.get(i).getName();
+            String name = parts.get(i).getSubmittedFileName();
+            String headerValue = parts.get(i).getHeader("content-disposition");
+            String filePath = headerValue.substring(headerValue.indexOf("filename=") + 10, headerValue.length() - 1); // Extract the file path
             byte[] bytes = parts.get(i).getInputStream().readAllBytes();
-            fileUploads[i] = new FileUpload(name, bytes);
+            fileUploads[i] = new FileUpload(name, bytes,filePath);
         }
         return fileUploads;
     }
